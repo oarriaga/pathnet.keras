@@ -55,7 +55,7 @@ if __name__ == '__main__':
     train_images, train_classes = train_data
     display_image(train_images[0], train_classes[0], cmap='gray')
 
-    test_data, train_data = data_manager.load('svhn')
+    train_data, test_data = data_manager.load('svhn')
     train_images, train_classes = train_data
     display_image(train_images[0], train_classes[0], cmap='gray')
 
