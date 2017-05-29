@@ -9,7 +9,7 @@ class DataDownloader(object):
         if dataset_name == 'svhn':
             train_data_url = ('http://ufldl.stanford.edu/housenumbers/train_32x32.mat')
             test_data_url = ('http://ufldl.stanford.edu/housenumbers/test_32x32.mat')
-            urls = [test_data_url, train_data_url]
+            urls = [train_data_url, test_data_url]
             for url in urls:
                 self._download(url, dataset_name)
 
