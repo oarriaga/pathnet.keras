@@ -1,14 +1,8 @@
 from keras.layers.merge import _Merge
-from keras.layers import Dense
-from keras.layers import Input
-from keras.layers import concatenate
-from keras.models import Model
-from keras.layers import Lambda
 import keras.backend as K
-from keras.utils import plot_model
 
 class ReduceSum(_Merge):
-    """Layer that concatenates a list of inputs.
+    """Layer the reduce sum module from path-nets.
 
     It takes as input a list of tensors,
     all of the same shape expect for the concatenation axis,
@@ -46,15 +40,9 @@ class ReduceSum(_Merge):
         if not isinstance(inputs, list):
             raise ValueError('A `ReduceSum` layer should be called '
                              'on a list of inputs.')
-        print(len(inputs))
         expanded_tensors = [K.expand_dims(x, axis=-1) for x in inputs]
-        print(expanded_tensors[0].shape)
-        print(expanded_tensors[1].shape)
-        print(expanded_tensors[2].shape)
         concatenated_tensor = K.concatenate(expanded_tensors, axis=self.axis)
-        print(concatenated_tensor.shape)
         reduced_sum_tensor = K.sum(concatenated_tensor, axis=self.axis)
-        print(reduced_sum_tensor.shape)
         return reduced_sum_tensor
         #return K.concatenate(inputs, axis=self.axis)
 
@@ -110,24 +98,32 @@ class ReduceSum(_Merge):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-input_layer = Input(shape=(20,))
 
-path_1 = Dense(20)(input_layer)
-path_2 = Dense(20)(input_layer)
-path_3 = Dense(20)(input_layer)
+if __name__ == '__main__':
+    from keras.layers import Dense
+    from keras.layers import Input
+    from keras.models import Model
+    from keras.utils import plot_model
 
-layer_paths_1 = [path_1, path_2, path_3]
-reduced_sum_1 = ReduceSum(axis=-1)(layer_paths_1)
-print(K.int_shape(reduced_sum_1))
+    # input layer
+    input_layer = Input(shape=(20,))
 
-path_4 = Dense(20)(reduced_sum_1)
-path_5 = Dense(20)(reduced_sum_1)
-path_6 = Dense(20)(reduced_sum_1)
+    # first layer
+    path_1 = Dense(20)(input_layer)
+    path_2 = Dense(20)(input_layer)
+    path_3 = Dense(20)(input_layer)
+    layer_paths_1 = [path_1, path_2, path_3]
+    reduced_sum_1 = ReduceSum(axis=-1)(layer_paths_1)
 
-layer_paths_2 = [path_4, path_5, path_6]
-reduced_sum_2 = ReduceSum(axis=-1)(layer_paths_2)
+    # second layer
+    path_4 = Dense(20)(reduced_sum_1)
+    path_5 = Dense(20)(reduced_sum_1)
+    path_6 = Dense(20)(reduced_sum_1)
+    layer_paths_2 = [path_4, path_5, path_6]
+    reduced_sum_2 = ReduceSum(axis=-1)(layer_paths_2)
 
-classification = Dense(10)(reduced_sum_2)
-model = Model(inputs=input_layer, outputs=classification)
+    # output layer
+    classification = Dense(10)(reduced_sum_2)
+    model = Model(inputs=input_layer, outputs=classification)
 
-plot_model(model, to_file='pathnet.png')
+    plot_model(model, to_file='../images/pathnet.png')
