@@ -8,7 +8,6 @@ class GeneticPath(object):
         self.num_modules_per_layer = num_modules_per_layer
         self.num_active_paths = num_active_paths
         self.population_size = population_size
-
         self.genotype_paths = []
         for population_arg in range(population_size):
             genotype_path = np.random.randint(low=0,
