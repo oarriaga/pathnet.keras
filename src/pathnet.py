@@ -1,9 +1,9 @@
-import itertools
-
 from keras.layers import Dense
 from keras.layers import Input
+from layers import ReduceSum
 from keras.models import Model
 import keras.backend as K
+import numpy as np
 
 class PathNet(object):
     def __init__(self, num_layers=3, num_modules_per_layer=10,
@@ -12,12 +12,12 @@ class PathNet(object):
         self.num_modules_per_layer = num_modules_per_layer
         self.population_size = population_size
         self.num_active_paths = num_active_paths
-        self.input_size = (48, 48)
-        self.input_layer = Input(shape=(784,))
+        self.output_size = (10)
+        self.input_layer = Input(shape=(20,))
         self.output_layer = Dense(self.output_size)
         self.num_neurons_per_module = 20
-        self.module_paths = self._calculate_all_paths()
-        self.layers = self._instantiate_pathnet()
+        #self.module_paths = self._calculate_all_paths()
+        self.pathnet = self._instantiate_pathnet()
 
     def _reduce_sum(tensors):
         tensor_sum = K.zeros_like(tensors[0])
@@ -32,28 +32,41 @@ class PathNet(object):
             for module_arg in range(self.num_modules_per_layer):
                 modules.append(Dense(self.num_neurons_per_module))
             layers.append(modules)
-        return layers
+        return np.asarray(layers)
 
     def compile_path(self, individual):
         """ pathnet should be a numpy array of size
         num_layers x num_modules_per_layer
         """
+        #path_mask = individual == True
+        #selected_path = pathnet[path_mask]
         num_layers, num_modules_per_layer = individual.shape
+        reduced_sum_modules = []
         for layer_arg in range(num_layers):
+            layer_paths = []
             for module_arg in range(num_modules_per_layer):
                 if individual[layer_arg, module_arg]:
                     if layer_arg == 0:
-                        path = self.layers[layer_arg, module_arg](
-                                                        self.input_layer)
+                        layer_paths.append(self.pathnet[layer_arg, module_arg](
+                                                            self.input_layer))
                     else:
-                        path = self.layers[layer_arg, module_arg](
-                                        self.sum_modules[layer_arg])
+                        layer_paths.append(self.pathnet[layer_arg, module_arg](
+                                        reduced_sum_modules[layer_arg - 1]))
+            reduced_sum_modules.append(ReduceSum(axis=-1)(layer_paths))
 
-
-        path = self.output_layer(path)
-        model = Model(inputs=self.input_layer, output=path)
+        predictions = self.output_layer(reduced_sum_modules[-1])
+        model = Model(inputs=self.input_layer, outputs=predictions)
         return model
 
 if __name__ == '__main__':
-    pathnet = PathNet()
+    from keras.utils import plot_model
+
+    num_layers = 5
+    num_modules_per_layer = 10
+    pathnet = PathNet(num_layers, num_modules_per_layer)
+    individual = np.ones(shape=(num_layers, num_modules_per_layer))
+    model = pathnet.compile_path(individual)
+    plot_model(model, to_file='../images/random_pathnet.png')
+
+
 
