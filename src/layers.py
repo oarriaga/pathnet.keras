@@ -126,4 +126,4 @@ if __name__ == '__main__':
     classification = Dense(10)(reduced_sum_2)
     model = Model(inputs=input_layer, outputs=classification)
 
-    plot_model(model, to_file='../images/pathnet.png')
+    plot_model(model, to_file='../images/pathnet_example.png')
