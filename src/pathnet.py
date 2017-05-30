@@ -2,7 +2,6 @@ from keras.layers import Dense
 from keras.layers import Input
 from layers import ReduceSum
 from keras.models import Model
-import keras.backend as K
 import numpy as np
 
 class PathNet(object):
@@ -18,12 +17,6 @@ class PathNet(object):
         self.num_neurons_per_module = 20
         #self.module_paths = self._calculate_all_paths()
         self.pathnet = self._instantiate_pathnet()
-
-    def _reduce_sum(tensors):
-        tensor_sum = K.zeros_like(tensors[0])
-        for tensor in tensors:
-            tensor_sum = tensor_sum + tensor
-        return
 
     def _instantiate_pathnet(self):
         layers = []
