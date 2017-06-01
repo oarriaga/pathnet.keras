@@ -15,14 +15,18 @@ num_genotypes_per_tournament = 2
 validation_split = .2
 verbosity=1
 
-# instantiating classes
+# instantiating classes and process data
 genetic_paths = GeneticPath(shape=(num_modules_per_layer, num_layers))
 pathnet = PathNet(shape=(num_modules_per_layer, num_layers))
 data_manager = DataManager()
 train_data, test_data = data_manager.load('svhn')
 train_data, validation_data = split_data(train_data)
 train_images, train_classes = train_data
+train_images = normalize_images(train_images)
+validation_images, validation_classes = validation_data
+validation_images = normalize_images(validation_images)
 
+# train path with evolution strategies
 for genetic_epoch_arg in range(num_genetic_epochs):
     sampled_paths, sampled_args  = genetic_paths.sample_genotype_paths(
                                             num_genotypes_per_tournament)
@@ -33,7 +37,6 @@ for genetic_epoch_arg in range(num_genetic_epochs):
                                                         metrics=['accuracy'])
         path_model.fit(train_images, train_classes, batch_size, num_cnn_epochs,
                                     verbosity, validation_split, shuffle=True)
-        validation_images, validation_classes = validation_data
         score = path_model.evaluate(validation_images, validation_classes)
         losses.append(score[0])
     losses = np.asarray(losses)
