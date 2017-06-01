@@ -30,7 +30,12 @@ class GeneticPath(object):
         return module
 
     def sample_genotype_paths(self, num_genotypes=2):
-        return random.sample(self.population, num_genotypes)
+        sampled_args = random.sample(np.arange(self.population_size,
+                                                    num_genotypes))
+        sampled_individuals = []
+        for sampled_arg in sampled_args:
+            sampled_individuals.append(self.population[sampled_arg])
+        return sampled_individuals, sampled_args
 
     def mutate(self, genotype_path):
         mutation_probabilities = np.random.random(size=(
