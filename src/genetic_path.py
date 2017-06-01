@@ -7,24 +7,25 @@ class GeneticPath(object):
         self.num_modules_per_layer, self.num_layers = shape
         self.max_num_active_paths = max_num_active_paths
         self.population_size = population_size
-        self.population = self.make_new_population()
+        self.population = self.generate_population()
 
-    def make_new_population_old(self):
-        population = []
-        for individual_arg in range(self.population_size):
-            genotype_path = np.random.randint(low=0,
-                    high=self.num_modules_per_layer,
-                    size=(self.num_layers, self.population_size))
-            population.append(genotype_path)
+    def generate_population(self):
+        population = [self._generate_individual()
+                for _ in range(self.population_size)]
         return population
 
-    def generate_valid_module(self):
-        module = np.zeros(self.num_modules_per_layer)
+    def _generate_individual(self):
+        path = np.zeros(shape=(self.num_modules_per_layer, self.num_layers))
+        return np.apply_along_axis(self._generate_valid_module,
+                                            axis=0, arr=path)
+
+    def _generate_valid_module(self, module):
         random_args = np.random.permutation(self.num_modules_per_layer)
         num_active_paths = np.random.randint(1, self.max_num_active_paths + 1)
         random_args = np.unravel_index(random_args[:num_active_paths],
                                         dims=self.num_modules_per_layer)
         module[random_args] = 1
+        return module
 
     def sample_genotype_paths(self, num_genotypes=2):
         return random.sample(self.population, num_genotypes)
@@ -46,13 +47,16 @@ class GeneticPath(object):
         genotype_path[mutation_mask] = selected_paths
 
     def overwrite(self, genotypes, fitnesses):
-            win = genotypes[fitnesses.index(max(fitnesses))]
-            lose = genotypes[fitnesses.index(min(fitnesses))]
-            genotype = win.return_genotype()
-            lose.overwrite(genotype)
-            lose.mutate()
+        win = genotypes[fitnesses.index(max(fitnesses))]
+        lose = genotypes[fitnesses.index(min(fitnesses))]
+        genotype = win.return_genotype()
+        lose.overwrite(genotype)
+        lose.mutate()
 
 if __name__ == '__main__':
-    genetic_paths = GeneticPath(5, 3, 3, 10)
-    print(genetic_paths.population)
+    genetic_paths = GeneticPath(shape=(5, 3))
+    print(genetic_paths.population[0])
+    path_1, path_2 = genetic_paths.sample_genotype_paths()
+    print(path_1)
+    print(path_2)
 
