@@ -8,7 +8,8 @@ class GeneticPath(object):
         self.max_num_active_paths = max_num_active_paths
         self.population_size = population_size
         self.population = self.generate_population()
-        self.mutation_rate = 1.0 / (self.num_layers * self.max_num_active_paths)
+        self.mutation_rate = 1.0 / (self.num_layers *
+                                    self.max_num_active_paths)
 
     def generate_population(self):
         population = [self._generate_genotype_path()
@@ -52,27 +53,15 @@ class GeneticPath(object):
         genotype_path[mutated_args] = 1
         return genotype_path
 
-    def mutate_genotype_path(self, genotype_path):
-        mutation_probabilities = np.random.random(size=(self.num_layers,
-                                                self.num_active_paths))
-        mutation_mask = self.mutation_rate > mutation_probabilities
-        selected_paths = genotype_path[mutation_mask]
-        selected_paths = selected_paths + np.random.randint(low=-2, high=2,
-                                                size=selected_paths.shape)
-        negative_mask = selected_paths < 0
-        selected_paths[negative_mask] = (selected_paths[negative_mask] +
-                                        self.num_modules_per_layer)
-        positive_mask = selected_paths > self.num_modules_per_layer
-        selected_paths[positive_mask] = (selected_paths[positive_mask] -
-                                        (self.num_modules_per_layer - 1))
-        genotype_path[mutation_mask] = selected_paths
-
-    def overwrite(self, genotypes, fitnesses):
-        win = genotypes[fitnesses.index(max(fitnesses))]
-        lose = genotypes[fitnesses.index(min(fitnesses))]
-        genotype = win.return_genotype()
-        lose.overwrite(genotype)
-        lose.mutate()
+    def overwrite(self, genotype_args, fitness_values):
+        genotype_arg_1, genotype_arg_2 = genotype_args
+        fitness_value_1, fitness_value_2 = fitness_values
+        if fitness_value_1 >= fitness_value_2:
+            genotype_arg_2 = genotype_arg_1.copy()
+            genotype_arg_2 = self.mutate(self.population[genotype_arg_2])
+        else:
+            genotype_arg_1 = genotype_arg_2.copy()
+            genotype_arg_1 = self.mutate(self.population[genotype_arg_1])
 
 if __name__ == '__main__':
     genetic_paths = GeneticPath(shape=(5, 3))
@@ -81,5 +70,4 @@ if __name__ == '__main__':
     #print('path_2 \n', path_2)
     mutated_path_1 = genetic_paths.mutate(path_1)
     print('mutated_path_1 \n', mutated_path_1)
-
 
