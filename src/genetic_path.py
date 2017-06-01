@@ -8,7 +8,7 @@ class GeneticPath(object):
         self.max_num_active_paths = max_num_active_paths
         self.population_size = population_size
         self.population = self.generate_population()
-        self.mutation_rate = 1.0 / (self.num_layers * self.num_active_paths)
+        self.mutation_rate = 1.0 / (self.num_layers * self.max_num_active_paths)
 
     def generate_population(self):
         population = [self._generate_genotype_path()
@@ -32,8 +32,8 @@ class GeneticPath(object):
         return random.sample(self.population, num_genotypes)
 
     def mutate(self, genotype_path):
-        mutation_probabilities = np.random.random(size=(self.num_layers,
-                                                self.num_active_paths))
+        mutation_probabilities = np.random.random(size=(
+                self.num_modules_per_layer, self.num_layers))
         inside_path_mask = genotype_path == 1
         mutation_mask = self.mutation_rate > mutation_probabilities
         # mutation is only applied to the preexisting paths.
@@ -50,7 +50,7 @@ class GeneticPath(object):
         y_mutated_args = np.clip(y_mutated_args, 0, max_module_arg)
         mutated_args = (x_mutated_args, y_mutated_args)
         genotype_path[mutated_args] = 1
-        return genetic_paths
+        return genotype_path
 
     def mutate_genotype_path(self, genotype_path):
         mutation_probabilities = np.random.random(size=(self.num_layers,
@@ -76,8 +76,10 @@ class GeneticPath(object):
 
 if __name__ == '__main__':
     genetic_paths = GeneticPath(shape=(5, 3))
-    print(genetic_paths.population[0])
     path_1, path_2 = genetic_paths.sample_genotype_paths()
-    print(path_1)
-    print(path_2)
+    print('path_1 \n', path_1)
+    #print('path_2 \n', path_2)
+    mutated_path_1 = genetic_paths.mutate(path_1)
+    print('mutated_path_1 \n', mutated_path_1)
+
 
