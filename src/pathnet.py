@@ -26,16 +26,11 @@ class PathNet(object):
         return np.asarray(modules)
 
     def compile_path(self, individual):
-        """ pathnet should be a numpy array of size
-        num_layers x num_modules_per_layer
-        """
-        #path_mask = individual == True
-        #selected_path = pathnet[path_mask]
         reduced_sum_modules = []
         for layer_arg in range(self.num_layers):
             layer_paths = []
             for module_arg in range(self.num_modules_per_layer):
-                if individual[module_arg, layer_arg]:
+                if individual[module_arg, layer_arg] == 1:
                     if layer_arg == 0:
                         layer_paths.append(self.pathnet[module_arg, layer_arg](
                                                             self.input_layer))
