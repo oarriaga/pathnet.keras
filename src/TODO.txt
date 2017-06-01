@@ -1,0 +1,3 @@
+Change the mutation function using the one-hot encoding.
+Change/create the overwrite function given the loss value.
+Construct the pipeline to get the winner.
