@@ -2,21 +2,32 @@ import random
 import numpy as np
 
 class GeneticPath(object):
-    def __init__(self, num_layers, num_modules_per_layer,
-                population_size, num_active_paths=3):
-        self.num_layers = num_layers
-        self.num_modules_per_layer = num_modules_per_layer
-        self.num_active_paths = num_active_paths
+    def __init__(self, shape=(3,5), population_size=64,
+                                max_num_active_paths=3):
+        self.num_modules_per_layer, self.num_layers = shape
+        self.max_num_active_paths = max_num_active_paths
         self.population_size = population_size
-        self.genotype_paths = []
-        for population_arg in range(population_size):
+        self.population = self.make_new_population()
+
+    def make_new_population_old(self):
+        population = []
+        for individual_arg in range(self.population_size):
             genotype_path = np.random.randint(low=0,
                     high=self.num_modules_per_layer,
                     size=(self.num_layers, self.population_size))
-            self.genotype_paths.append(genotype_path)
+            population.append(genotype_path)
+        return population
+
+    def generate_valid_module(self):
+        module = np.zeros(self.num_modules_per_layer)
+        random_args = np.random.permutation(self.num_modules_per_layer)
+        num_active_paths = np.random.randint(1, self.max_num_active_paths + 1)
+        random_args = np.unravel_index(random_args[:num_active_paths],
+                                        dims=self.num_modules_per_layer)
+        module[random_args] = 1
 
     def sample_genotype_paths(self, num_genotypes=2):
-        return random.sample(self.genotype_paths, num_genotypes)
+        return random.sample(self.population, num_genotypes)
 
     def mutate_genotype_path(self, genotype_path):
         mutation_probabilities = np.random.random(size=(self.num_layers,
