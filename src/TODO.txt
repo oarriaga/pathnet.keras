@@ -1,3 +1,7 @@
-Change the mutation function using the one-hot encoding.
-Change/create the overwrite function given the loss value.
 Construct the pipeline to get the winner.
+    - Need to select the last winner path
+    so you have to save the best losses 
+    with their corresponding paths.
+    - You need to train for different tasks.
+    - You need to visualize and evaluate results.
+
