@@ -1,5 +1,4 @@
 from keras.utils import to_categorical
-import numpy as np
 
 from data_manager import DataManager
 from genetic_path import GeneticPath
@@ -15,7 +14,7 @@ num_cnn_epochs = 100
 batch_size = 32
 num_genotypes_per_tournament = 2
 validation_split = .2
-verbosity=1
+verbosity = 1
 
 # instantiating classes and process data
 genetic_paths = GeneticPath(shape=(num_modules_per_layer, num_layers))
@@ -35,7 +34,7 @@ train_classes, validation_classes, test_classes = one_hot_classes
 
 image_data = (train_images, validation_images, test_images)
 normalized_images = [normalize_images(image) for image in image_data]
-train_images, validation_images, test_images = normalize_images
+train_images, validation_images, test_images = normalized_images
 
 # train path with evolution strategies
 for genetic_epoch_arg in range(num_genetic_epochs):
@@ -50,10 +49,7 @@ for genetic_epoch_arg in range(num_genetic_epochs):
                                     verbosity, validation_data=validation_data,
                                                                   shuffle=True)
         score = path_model.evaluate(test_images, test_classes)
-        losses.append(score[0])
-    losses = np.asarray(losses)
-    winner_arg = np.argmax(losses)
-    population_arg = sampled_args[winner_arg]
-    genetic_paths.overwrite(population_arg, losses)
+        losses.append(-1 * score[0])
+    genetic_paths.overwrite(sampled_args, losses)
 
 
