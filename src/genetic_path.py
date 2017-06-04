@@ -42,19 +42,14 @@ class GeneticPath(object):
                 self.num_modules_per_layer, self.num_layers))
         inside_path_mask = genotype_path == 1
         mutation_mask = self.mutation_rate > mutation_probabilities
-        # mutation is only applied to the preexisting paths.
         mutation_mask = np.logical_and(inside_path_mask, mutation_mask)
-        # restart the to-be mutated genes.
         genotype_path[mutation_mask] = 0
-        x_mutated_args, y_mutated_args = np.where(mutation_mask)
-        x_mutation = np.random.randint(-2 , 2, size=x_mutated_args.shape)
+        y_mutated_args, x_mutated_args = np.where(mutation_mask)
         y_mutation = np.random.randint(-2 , 2, size=y_mutated_args.shape)
-        x_mutated_args = x_mutated_args + x_mutation
         y_mutated_args = y_mutated_args + y_mutation
         max_module_arg = self.num_modules_per_layer - 1
-        x_mutated_args = np.clip(x_mutated_args, 0, max_module_arg)
         y_mutated_args = np.clip(y_mutated_args, 0, max_module_arg)
-        mutated_args = (x_mutated_args, y_mutated_args)
+        mutated_args = (y_mutated_args, x_mutated_args)
         genotype_path[mutated_args] = 1
         return genotype_path
 
