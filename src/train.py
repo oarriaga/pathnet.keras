@@ -1,7 +1,7 @@
 from keras.utils import to_categorical
 
 from data_manager import DataManager
-from genetic_path import GeneticPath
+from genetic_agents import GeneticAgents
 from pathnet import PathNet
 from utils import normalize_images
 from utils import split_data
@@ -17,7 +17,7 @@ validation_split = .2
 verbosity = 1
 
 # instantiating classes and process data
-genetic_paths = GeneticPath(shape=(num_modules_per_layer, num_layers))
+genetic_agents = GeneticAgents(shape=(num_modules_per_layer, num_layers))
 pathnet = PathNet(shape=(num_modules_per_layer, num_layers))
 
 # loading and pre-processing dataset
@@ -36,9 +36,9 @@ image_data = (train_images, validation_images, test_images)
 normalized_images = [normalize_images(image) for image in image_data]
 train_images, validation_images, test_images = normalized_images
 
-# train path with evolution strategies
+# train paths with an evolution strategy
 for genetic_epoch_arg in range(num_genetic_epochs):
-    sampled_paths, sampled_args  = genetic_paths.sample_genotype_paths(
+    sampled_paths, sampled_args  = genetic_agents.sample_genotype_paths(
                                             num_genotypes_per_tournament)
     losses = []
     for genotype_path in sampled_paths:
@@ -50,6 +50,6 @@ for genetic_epoch_arg in range(num_genetic_epochs):
                                                                   shuffle=True)
         score = path_model.evaluate(test_images, test_classes)
         losses.append(-1 * score[0])
-    genetic_paths.overwrite(sampled_args, losses)
+    genetic_agents.overwrite(sampled_args, losses)
 
 

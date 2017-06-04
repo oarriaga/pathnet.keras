@@ -1,7 +1,7 @@
 import random
 import numpy as np
 
-class GeneticPath(object):
+class GeneticAgents(object):
     def __init__(self, shape=(3, 5), population_size=64,
                                 max_num_active_paths=3):
         self.num_modules_per_layer, self.num_layers = shape
@@ -64,8 +64,8 @@ class GeneticPath(object):
             self.population[genotype_arg_1] = self.mutate(genotype_path_2)
 
 if __name__ == '__main__':
-    genetic_paths = GeneticPath(shape=(5, 3))
-    paths, path_args = genetic_paths.sample_genotype_paths()
+    genetic_agents = GeneticAgents(shape=(5, 3))
+    paths, path_args = genetic_agents.sample_genotype_paths()
     path_1, path_2 = paths
     #print('path_1 \n', path_1)
     #mutated_path_1 = genetic_paths.mutate(path_1).copy()
@@ -73,9 +73,9 @@ if __name__ == '__main__':
 
     loss = (100, 1)
     print(loss)
-    genetic_paths.overwrite(path_args, loss)
+    genetic_agents.overwrite(path_args, loss)
     print('overwritten_path_1 (winner): \n',
-            genetic_paths.population[path_args[0]])
+            genetic_agents.population[path_args[0]])
     print('overwritten_path_2 (loser): \n',
-            genetic_paths.population[path_args[1]])
-    print(genetic_paths.population[path_args[0]] == genetic_paths.population[path_args[1]])
+            genetic_agents.population[path_args[1]])
+    print(genetic_agents.population[path_args[0]] == genetic_agents.population[path_args[1]])
