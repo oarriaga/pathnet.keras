@@ -1,7 +1,13 @@
+FIX:
+    - Compile method from Keras models will probably reset weights.
+    - Incorporate into the pipeline model/weights save/load.
+
+
 Construct the pipeline to get the winner.
     - Need to select the last winner path
     so you have to save the best losses 
     with their corresponding paths.
     - You need to train for different tasks.
     - You need to visualize and evaluate results.
+
 
