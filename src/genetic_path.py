@@ -58,19 +58,19 @@ class GeneticPath(object):
         fitness_value_1, fitness_value_2 = fitness_values
         if fitness_value_1 >= fitness_value_2:
             genotype_path_1 = self.population[genotype_arg_1].copy()
-            self.population[genotype_arg_2] = genotype_path_1 #self.mutate(genotype_path_1)
+            self.population[genotype_arg_2] = self.mutate(genotype_path_1)
         else:
             genotype_path_2 = self.population[genotype_arg_2].copy()
-            self.population[genotype_arg_1] = genotype_path_2 #self.mutate(genotype_path_2)
+            self.population[genotype_arg_1] = self.mutate(genotype_path_2)
 
 if __name__ == '__main__':
     genetic_paths = GeneticPath(shape=(5, 3))
     paths, path_args = genetic_paths.sample_genotype_paths()
     path_1, path_2 = paths
-    print('path_1 \n', path_1)
-    mutated_path_1 = genetic_paths.mutate(path_1).copy()
-    print('mutated_path_1 \n', mutated_path_1)
-    """
+    #print('path_1 \n', path_1)
+    #mutated_path_1 = genetic_paths.mutate(path_1).copy()
+    #print('mutated_path_1 \n', mutated_path_1)
+
     loss = (100, 1)
     print(loss)
     genetic_paths.overwrite(path_args, loss)
@@ -79,4 +79,3 @@ if __name__ == '__main__':
     print('overwritten_path_2 (loser): \n',
             genetic_paths.population[path_args[1]])
     print(genetic_paths.population[path_args[0]] == genetic_paths.population[path_args[1]])
-    """
