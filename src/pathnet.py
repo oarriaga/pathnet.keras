@@ -50,8 +50,9 @@ if __name__ == '__main__':
     num_modules_per_layer = 10
     pathnet = PathNet(shape=(num_modules_per_layer, num_layers))
     individual = np.ones(shape=(num_modules_per_layer, num_layers))
-    model = pathnet.compile_path(individual)
-    plot_model(model, to_file='../images/random_pathnet.png')
-
-
-
+    full_model = pathnet.compile_path(individual)
+    plot_model(full_model, to_file='../images/full_pathnet.png')
+    random_individual = np.random.randint(0, 2,
+                        size=(num_modules_per_layer, num_layers))
+    path_model = pathnet.compile_path(random_individual)
+    plot_model(path_model, to_file='../images/random_pathnet.png')
