@@ -67,10 +67,6 @@ if __name__ == '__main__':
     genetic_agents = GeneticAgents(shape=(5, 3))
     paths, path_args = genetic_agents.sample_genotype_paths()
     path_1, path_2 = paths
-    #print('path_1 \n', path_1)
-    #mutated_path_1 = genetic_paths.mutate(path_1).copy()
-    #print('mutated_path_1 \n', mutated_path_1)
-
     loss = (100, 1)
     print(loss)
     genetic_agents.overwrite(path_args, loss)
