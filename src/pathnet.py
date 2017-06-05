@@ -5,11 +5,10 @@ from keras.models import Model
 import numpy as np
 
 class PathNet(object):
-    def __init__(self, shape=(3,5), population_size=64, num_active_paths=3,
+    def __init__(self, shape=(3,5), population_size=64,
                 input_size=10, output_size=20, num_neurons_per_module=20):
         self.num_modules_per_layer, self.num_layers = shape
         self.population_size = population_size
-        self.num_active_paths = num_active_paths
         self.input_layer = Input(shape=(input_size,))
         self.output_size = output_size
         self.output_layer = Dense(self.output_size)
