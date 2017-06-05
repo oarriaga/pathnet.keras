@@ -21,7 +21,8 @@ class PathNet(object):
         for module_arg in range(self.num_modules_per_layer):
             layers = []
             for layer_arg in range(self.num_layers):
-                layers.append(Dense(self.num_neurons_per_module))
+                name = 'module_' + str(module_arg) + str(layer_arg)
+                layers.append(Dense(self.num_neurons_per_module, name=name))
             modules.append(layers)
         return np.asarray(modules)
 
