@@ -5,7 +5,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-def normalize_image(image_array):
+def normalize_images(image_array):
     return image_array / 255.
 
 def display_image(image_array, image_class, cmap=None):
@@ -34,6 +34,9 @@ def save_layer_weights(model, save_path):
 
 def load_layer_weights(model, save_path):
     file_paths = glob.glob(save_path + '*.p')
+    if file_paths is None:
+        print('file_paths not found, continuing without loading weights...')
+        return
     weight_filenames = [os.path.basename(path)[:-2] for path in file_paths]
     for layer in model.layers:
         if layer.name in weight_filenames:
