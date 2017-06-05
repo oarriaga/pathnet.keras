@@ -1,3 +1,7 @@
+import glob
+import os
+import pickle
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,7 +27,16 @@ def split_data(train_data, validation_split=.2):
     validation_data = (validation_images, validation_classes)
     return train_data, validation_data
 
+def save_layer_weights(model, save_path):
+    for layer in model.layers:
+        file_path = save_path + layer.name + '.p'
+        pickle.dump(layer.get_weights(), open(file_path, 'wb'))
 
-
-
-
+def load_layer_weights(model, save_path):
+    file_paths = glob.glob(save_path + '*.p')
+    weight_filenames = [os.path.basename(path)[:-2] for path in file_paths]
+    for layer in model.layers:
+        if layer.name in weight_filenames:
+            weights_path = save_path + layer.name + '.p'
+            weights = pickle.load(open(weights_path, 'rb'))
+            layer.set_weights(weights)
