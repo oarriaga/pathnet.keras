@@ -5,6 +5,8 @@ from genetic_agents import GeneticAgents
 from pathnet import PathNet
 from utils import normalize_images
 from utils import split_data
+from utils import load_layer_weights
+from utils import save_layer_weights
 
 # parameters 
 num_layers = 5
@@ -15,23 +17,34 @@ batch_size = 32
 num_genotypes_per_tournament = 2
 validation_split = .2
 verbosity = 1
+save_path = '../trained_models/'
+mnist_args = [6 , 7]
+num_classes = len(mnist_args)
 
-# instantiating classes and process data
+# instantiating agents and models
 genetic_agents = GeneticAgents(shape=(num_modules_per_layer, num_layers))
 pathnet = PathNet(shape=(num_modules_per_layer, num_layers))
 
-# loading and pre-processing dataset
+# loading data
 data_manager = DataManager()
-train_data, test_data = data_manager.load('mnist', class_args=[6, 7])
+train_data, test_data = data_manager.load('mnist', class_args=mnist_args)
 train_data, validation_data = split_data(train_data)
 train_images, train_classes = train_data
 validation_images, validation_classes = validation_data
 test_images, test_classes = test_data
 
+# encode outputs into one hot vectors
 arg_classes = (train_classes, validation_classes, test_classes)
-one_hot_classes = [to_categorical(class_data) for class_data in arg_classes]
+"""
+FIXME
+# to categorical is not working since is trying to use the 6 as
+# argument but it should only contain 2 classes.
+"""
+one_hot_classes = [to_categorical(class_data, num_classes)
+                            for class_data in arg_classes]
 train_classes, validation_classes, test_classes = one_hot_classes
 
+# normalize images
 image_data = (train_images, validation_images, test_images)
 normalized_images = [normalize_images(image) for image in image_data]
 train_images, validation_images, test_images = normalized_images
@@ -43,11 +56,13 @@ for genetic_epoch_arg in range(num_genetic_epochs):
     losses = []
     for genotype_path in sampled_paths:
         path_model = pathnet.compile_path(genotype_path)
+        load_layer_weights(path_model, save_path)
         path_model.compile(optimizer='adam', loss='categorical_crossentropy',
                                                         metrics=['accuracy'])
         path_model.fit(train_images, train_classes, batch_size, num_cnn_epochs,
                                     verbosity, validation_data=validation_data,
                                                                   shuffle=True)
+        save_layer_weights(path_model, save_path)
         score = path_model.evaluate(test_images, test_classes)
         losses.append(-1 * score[0])
     genetic_agents.overwrite(sampled_args, losses)
