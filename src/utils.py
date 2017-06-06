@@ -43,3 +43,23 @@ def load_layer_weights(model, save_path):
             weights_path = save_path + layer.name + '.p'
             weights = pickle.load(open(weights_path, 'rb'))
             layer.set_weights(weights)
+
+def to_categorical(data):
+    arg_classes = np.unique(data).tolist()
+    arg_classes.sort()
+    num_classes = len(arg_classes)
+    label_to_arg = dict(zip(arg_classes, list(range(num_classes))))
+    num_samples = len(data)
+    categorical_data = np.zeros(shape=(num_samples, num_classes))
+    for sample_arg in range(num_samples):
+        label = data[sample_arg]
+        data_arg = label_to_arg[label]
+        categorical_data[sample_arg, data_arg] = 1
+    return categorical_data
+
+
+if __name__ == "__main__":
+    class_data = np.array([7, 7, 6, 6 ,6 ,5 ,6 ,6])
+    print(class_data)
+    categorical_data = to_categorical(class_data)
+    print(categorical_data)
