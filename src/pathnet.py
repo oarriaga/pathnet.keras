@@ -45,6 +45,9 @@ class PathNet(object):
 
 if __name__ == '__main__':
     from keras.utils import plot_model
+    from genetic_agents import GeneticAgents
+
+
 
     num_layers = 5
     num_modules_per_layer = 10
@@ -56,3 +59,10 @@ if __name__ == '__main__':
                         size=(num_modules_per_layer, num_layers))
     path_model = pathnet.compile_path(random_individual)
     plot_model(path_model, to_file='../images/random_pathnet.png')
+
+    genetic_agents = GeneticAgents(shape=(num_modules_per_layer, num_layers))
+    paths, path_args = genetic_agents.sample_genotype_paths()
+    path_1, path_2 = paths
+    individual_path = pathnet.compile_path(path_1)
+    plot_model(individual_path, to_file='../images/agent_path.png')
+
