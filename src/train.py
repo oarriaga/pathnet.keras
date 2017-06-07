@@ -6,6 +6,7 @@ from utils import split_data
 from utils import load_layer_weights
 from utils import save_layer_weights
 from utils import to_categorical
+from utils import flatten
 
 # parameters 
 num_layers = 5
@@ -22,7 +23,8 @@ num_classes = len(mnist_args)
 
 # instantiating agents and models
 genetic_agents = GeneticAgents(shape=(num_modules_per_layer, num_layers))
-pathnet = PathNet(shape=(num_modules_per_layer, num_layers))
+pathnet = PathNet(shape=(num_modules_per_layer, num_layers),
+                                output_size=len(mnist_args))
 
 # loading data splits
 data_manager = DataManager()
@@ -40,9 +42,12 @@ train_classes, validation_classes, test_classes = categorical_data
 
 # normalize images
 image_splits = (train_images, validation_images, test_images)
+image_splits = [flatten(image_split) for image_split in image_splits]
 normalized_images = [normalize_images(image_split)
                     for image_split in image_splits]
+
 train_images, validation_images, test_images = normalized_images
+validation_data = (validation_images, validation_classes)
 
 # train paths with an evolution strategy
 for genetic_epoch_arg in range(num_genetic_epochs):
@@ -50,7 +55,7 @@ for genetic_epoch_arg in range(num_genetic_epochs):
                                             num_genotypes_per_tournament)
     losses = []
     for genotype_path in sampled_paths:
-        path_model = pathnet.compile_path(genotype_path)
+        path_model = pathnet.build(genotype_path)
         load_layer_weights(path_model, save_path)
         path_model.compile(optimizer='adam', loss='categorical_crossentropy',
                                                         metrics=['accuracy'])
