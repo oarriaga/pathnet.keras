@@ -1,5 +1,6 @@
 from keras.layers import Dense
 from keras.layers import Input
+from layers import ReduceAverage
 from layers import ReduceSum
 from keras.models import Model
 import numpy as np
@@ -37,7 +38,10 @@ class PathNet(object):
                     else:
                         layer_paths.append(self.pathnet[module_arg, layer_arg](
                                         reduced_sum_modules[layer_arg - 1]))
-            reduced_sum_modules.append(ReduceSum(axis=-1)(layer_paths))
+            if layer_arg == (self.num_layers - 1):
+                reduced_sum_modules.append(ReduceAverage(axis=-1)(layer_paths))
+            else:
+                reduced_sum_modules.append(ReduceSum(axis=-1)(layer_paths))
 
 
         predictions = self.output_layer(reduced_sum_modules[-1])
