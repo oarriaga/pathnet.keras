@@ -57,6 +57,10 @@ def to_categorical(data):
         categorical_data[sample_arg, data_arg] = 1
     return categorical_data
 
+def flatten(images):
+    num_samples = len(images)
+    return images.reshape(num_samples, -1)
+
 
 if __name__ == "__main__":
     class_data = np.array([7, 7, 6, 6 ,6 ,5 ,6 ,6])
