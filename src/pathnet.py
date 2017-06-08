@@ -12,7 +12,7 @@ class PathNet(object):
         self.population_size = population_size
         self.input_layer = Input(shape=(input_size,))
         self.output_size = output_size
-        self.output_layer = Dense(self.output_size)
+        self.output_layer = Dense(self.output_size, activation='softmax')
         self.num_neurons_per_module = num_neurons_per_module
         self.pathnet = self._instantiate_pathnet_modules()
 
@@ -22,7 +22,8 @@ class PathNet(object):
             layers = []
             for layer_arg in range(self.num_layers):
                 name = 'module_' + str(module_arg) + str(layer_arg)
-                layers.append(Dense(self.num_neurons_per_module, name=name))
+                layers.append(Dense(self.num_neurons_per_module, name=name,
+                                                        activation='relu'))
             modules.append(layers)
         return np.asarray(modules)
 
