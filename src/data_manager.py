@@ -95,11 +95,13 @@ class DataManager(object):
         return (train_data, test_data)
 
 if __name__ == '__main__':
+    from utils import shuffle
     data_manager = DataManager()
     print('Available datasets: ', data_manager.available_datasets)
 
     train_data, test_data = data_manager.load('mnist', class_args=[0, 2])
     train_images, train_classes = train_data
+    train_images, train_classes = shuffle(train_images, train_classes)
     for image_arg in range(10):
         display_image(train_images[image_arg], train_classes[image_arg],
                                                             cmap='gray')
