@@ -61,6 +61,12 @@ def flatten(images):
     num_samples = len(images)
     return images.reshape(num_samples, -1)
 
+def shuffle(input_data, output_classes):
+    num_samples = len(input_data)
+    random_args = np.random.permutation(np.arange(num_samples))
+    input_data = input_data[random_args]
+    output_classes = output_classes[random_args]
+    return input_data, output_classes
 
 if __name__ == "__main__":
     class_data = np.array([7, 7, 6, 6 ,6 ,5 ,6 ,6])
