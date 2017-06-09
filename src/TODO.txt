@@ -1,9 +1,9 @@
 TODO: 
     - Test pipeline
         - Test loading saving weights.
-    - Incorporate train by batch.
+    - FIX: multiple reduce sum modules saving
+    - Add threshold for loss/accuracy
     - Construct MNIST experiments.
         - Data, paths saving.
         - Several runs data.
         - Histogram plot.
-    - Add salt and pepper noise to the images
