@@ -6,3 +6,4 @@ TODO:
         - Data, paths saving.
         - Several runs data.
         - Histogram plot.
+    - Add salt and pepper noise to the images
