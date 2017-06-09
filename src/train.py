@@ -10,7 +10,7 @@ from utils import to_categorical
 from utils import flatten
 from utils import shuffle
 from utils import spice_up_images
-from utils import display_image
+#from utils import display_image
 
 # parameters 
 num_layers = 3
@@ -22,9 +22,9 @@ num_samples_per_path = 50*batch_size
 num_genotypes_per_tournament = 2
 num_neurons_per_module = 20
 validation_split = .2
-verbosity = 1
+verbosity = 0
 save_path = '../trained_models/'
-mnist_args = [5 , 7]
+mnist_args = [5, 7]
 num_classes = len(mnist_args)
 
 
@@ -63,11 +63,12 @@ train_images, validation_images, test_images = normalized_images
 validation_data = (validation_images, validation_classes)
 
 #instantiating optimizer
-sgd = SGD(lr=0.05)
+sgd = SGD(lr=0.0001)
 
 # train paths with an evolution strategy
 chosen_paths = []
 for genetic_epoch_arg in range(num_genetic_epochs):
+    print('Genetic epoch:', genetic_epoch_arg)
     sampled_paths, sampled_args  = genetic_agents.sample_genotype_paths(
                                             num_genotypes_per_tournament)
     train_images, train_classes = shuffle(train_images, train_classes)
@@ -82,10 +83,9 @@ for genetic_epoch_arg in range(num_genetic_epochs):
         path_model.compile(optimizer=sgd, loss='categorical_crossentropy',
                                                             metrics=['acc'])
         path_model.fit(sampled_train_images, sampled_train_classes,
-                                        batch_size, num_cnn_epochs,
-                                            verbosity, shuffle=True)
+                        batch_size, num_cnn_epochs, verbosity, shuffle=True)
         save_layer_weights(path_model, save_path)
-        score = path_model.evaluate(validation_images, validation_classes)
+        score = path_model.evaluate(validation_images, validation_classes, verbose=verbosity)
         losses.append(-1 * score[0])
     best_path = genetic_agents.overwrite(sampled_args, losses)
     chosen_paths.append(best_path)
