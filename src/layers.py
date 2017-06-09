@@ -17,7 +17,6 @@ class ReduceSum(Layer):
         return reduced_sum_tensor
 
     def compute_output_shape(self, input_shape):
-        print(type(input_shape))
         if type(input_shape) == list:
             output_shape = input_shape[0]
         else:
@@ -40,7 +39,6 @@ class ReduceAverage(Layer):
         return reduced_average_tensor
 
     def compute_output_shape(self, input_shape):
-        print(type(input_shape))
         if type(input_shape) == list:
             output_shape = input_shape[0]
         else:
