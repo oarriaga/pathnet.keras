@@ -59,9 +59,11 @@ class GeneticAgents(object):
         if fitness_value_1 >= fitness_value_2:
             genotype_path_1 = self.population[genotype_arg_1].copy()
             self.population[genotype_arg_2] = self.mutate(genotype_path_1)
+            return genotype_path_1
         else:
             genotype_path_2 = self.population[genotype_arg_2].copy()
             self.population[genotype_arg_1] = self.mutate(genotype_path_2)
+            return genotype_path_2
 
 if __name__ == '__main__':
     genetic_agents = GeneticAgents(shape=(5, 3))
