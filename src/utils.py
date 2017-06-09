@@ -8,6 +8,17 @@ import numpy as np
 def normalize_images(image_array):
     return image_array.astype('float32') / 255.
 
+def add_salt_and_pepper(image_array, probability=.5):
+    image_array = np.squeeze(image_array)
+    uniform_values = np.random.rand(*image_array.shape)
+    spiced_image = image_array.copy()
+    spiced_image = spiced_image.astype('float32')
+    peppery_mask = uniform_values < probability/2.
+    spiced_image[peppery_mask] = np.min(image_array)
+    salty_mask = uniform_values > (1 - probability/2.)
+    spiced_image[salty_mask] = np.max(image_array)
+    return spiced_image
+
 def display_image(image_array, image_class, cmap=None):
     image_array = np.squeeze(image_array)
     image_array = image_array.astype('uint8')
