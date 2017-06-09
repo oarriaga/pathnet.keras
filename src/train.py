@@ -9,6 +9,8 @@ from utils import save_layer_weights
 from utils import to_categorical
 from utils import flatten
 from utils import shuffle
+from utils import spice_up_images
+from utils import display_image
 
 # parameters 
 num_layers = 3
@@ -26,11 +28,12 @@ mnist_args = [5 , 7]
 num_classes = len(mnist_args)
 
 
-# instantiating agents and models
+# instantiating agents and path-net sub-models
 genetic_agents = GeneticAgents(shape=(num_modules_per_layer, num_layers))
 pathnet = PathNet(shape=(num_modules_per_layer, num_layers),
-                                num_neurons_per_module=20,
+                num_neurons_per_module=num_neurons_per_module,
                                 output_size=len(mnist_args))
+
 
 # loading data splits
 data_manager = DataManager()
@@ -46,9 +49,13 @@ categorical_data = [to_categorical(class_arg_split)
                     for class_arg_split in class_arg_splits]
 train_classes, validation_classes, test_classes = categorical_data
 
-# normalize images
+# normalize and add salt/pepper noise to images
 image_splits = (train_images, validation_images, test_images)
 image_splits = [flatten(image_split) for image_split in image_splits]
+
+image_splits = [spice_up_images(image_split)
+                for image_split in image_splits]
+
 normalized_images = [normalize_images(image_split)
                     for image_split in image_splits]
 
@@ -59,12 +66,15 @@ validation_data = (validation_images, validation_classes)
 sgd = SGD(lr=0.05)
 
 # train paths with an evolution strategy
+chosen_paths = []
 for genetic_epoch_arg in range(num_genetic_epochs):
     sampled_paths, sampled_args  = genetic_agents.sample_genotype_paths(
                                             num_genotypes_per_tournament)
     train_images, train_classes = shuffle(train_images, train_classes)
     sampled_train_images = train_images[:num_samples_per_path]
     sampled_train_classes = train_classes[:num_samples_per_path]
+    #for arg in range(len(sampled_train_images)):
+        #display_image(sampled_train_images[arg].reshape(28, 28), sampled_train_classes[arg], cmap='gray')
     losses = []
     for genotype_path in sampled_paths:
         path_model = pathnet.build(genotype_path)
@@ -77,4 +87,5 @@ for genetic_epoch_arg in range(num_genetic_epochs):
         save_layer_weights(path_model, save_path)
         score = path_model.evaluate(validation_images, validation_classes)
         losses.append(-1 * score[0])
-    genetic_agents.overwrite(sampled_args, losses)
+    best_path = genetic_agents.overwrite(sampled_args, losses)
+    chosen_paths.append(best_path)
