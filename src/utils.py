@@ -47,6 +47,8 @@ def split_data(train_data, validation_split=.2):
 
 def save_layer_weights(model, save_path):
     for layer in model.layers:
+        if 'reduce' in layer.name:
+            continue
         file_path = save_path + layer.name + '.p'
         pickle.dump(layer.get_weights(), open(file_path, 'wb'))
 
