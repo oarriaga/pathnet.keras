@@ -68,7 +68,6 @@ sgd = SGD(lr=0.0001)
 # train paths with an evolution strategy
 chosen_paths = []
 for genetic_epoch_arg in range(num_genetic_epochs):
-    print('Genetic epoch:', genetic_epoch_arg)
     sampled_paths, sampled_args  = genetic_agents.sample_genotype_paths(
                                             num_genotypes_per_tournament)
     train_images, train_classes = shuffle(train_images, train_classes)
@@ -76,6 +75,7 @@ for genetic_epoch_arg in range(num_genetic_epochs):
     sampled_train_classes = train_classes[:num_samples_per_path]
     #for arg in range(len(sampled_train_images)):
         #display_image(sampled_train_images[arg].reshape(28, 28), sampled_train_classes[arg], cmap='gray')
+    print('\n Genetic epoch:', genetic_epoch_arg)
     losses = []
     for genotype_path in sampled_paths:
         path_model = pathnet.build(genotype_path)
@@ -85,7 +85,9 @@ for genetic_epoch_arg in range(num_genetic_epochs):
         path_model.fit(sampled_train_images, sampled_train_classes,
                         batch_size, num_cnn_epochs, verbosity, shuffle=True)
         save_layer_weights(path_model, save_path)
-        score = path_model.evaluate(validation_images, validation_classes, verbose=verbosity)
+        score = path_model.evaluate(validation_images, validation_classes,
+                                                        verbose=verbosity)
+        print('\n Scores:', score)
         losses.append(-1 * score[0])
     best_path = genetic_agents.overwrite(sampled_args, losses)
     chosen_paths.append(best_path)
