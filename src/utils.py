@@ -8,7 +8,14 @@ import numpy as np
 def normalize_images(image_array):
     return image_array.astype('float32') / 255.
 
-def add_salt_and_pepper(image_array, probability=.5):
+
+def spice_up_images(images):
+    num_samples = len(images)
+    for sample_arg in range(num_samples):
+        images[sample_arg] = _add_salt_and_pepper(images[sample_arg])
+    return images
+
+def _add_salt_and_pepper(image_array, probability=.5):
     image_array = np.squeeze(image_array)
     uniform_values = np.random.rand(*image_array.shape)
     spiced_image = image_array.copy()
