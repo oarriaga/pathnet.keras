@@ -96,6 +96,8 @@ class DataManager(object):
 
 if __name__ == '__main__':
     from utils import shuffle
+    from utils import add_salt_and_pepper
+
     data_manager = DataManager()
     print('Available datasets: ', data_manager.available_datasets)
 
@@ -103,8 +105,8 @@ if __name__ == '__main__':
     train_images, train_classes = train_data
     train_images, train_classes = shuffle(train_images, train_classes)
     for image_arg in range(10):
-        display_image(train_images[image_arg], train_classes[image_arg],
-                                                            cmap='gray')
+        image_array = add_salt_and_pepper(train_images[image_arg])
+        display_image(image_array, train_classes[image_arg], cmap='gray')
 
     #train_data, test_data = data_manager.load('svhn')
     #train_images, train_classes = train_data
