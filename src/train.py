@@ -10,13 +10,12 @@ from utils import to_categorical
 from utils import flatten
 from utils import shuffle
 from utils import spice_up_images
-#from utils import display_image
 
 # parameters 
 num_layers = 3
 num_modules_per_layer = 10
-num_genetic_epochs = 100
-num_cnn_epochs = 100
+max_num_genetic_epochs = 300
+num_cnn_epochs = 1
 batch_size = 16
 num_samples_per_path = 50*batch_size
 num_genotypes_per_tournament = 2
@@ -26,17 +25,17 @@ verbosity = 0
 save_path = '../trained_models/'
 mnist_args = [5, 7]
 num_classes = len(mnist_args)
+accuracy_treshold = .998
+sgd = SGD(lr=0.05)
 
-
-# instantiating agents and path-net sub-models
+# instantiating data manger, agents, path-net sub-models.
+data_manager = DataManager()
 genetic_agents = GeneticAgents(shape=(num_modules_per_layer, num_layers))
 pathnet = PathNet(shape=(num_modules_per_layer, num_layers),
                 num_neurons_per_module=num_neurons_per_module,
                                 output_size=len(mnist_args))
 
-
 # loading data splits
-data_manager = DataManager()
 train_data, test_data = data_manager.load('mnist', class_args=mnist_args)
 train_data, validation_data = split_data(train_data)
 train_images, train_classes = train_data
@@ -62,19 +61,14 @@ normalized_images = [normalize_images(image_split)
 train_images, validation_images, test_images = normalized_images
 validation_data = (validation_images, validation_classes)
 
-#instantiating optimizer
-sgd = SGD(lr=0.0001)
-
 # train paths with an evolution strategy
 chosen_paths = []
-for genetic_epoch_arg in range(num_genetic_epochs):
+for genetic_epoch_arg in range(max_num_genetic_epochs):
     sampled_paths, sampled_args  = genetic_agents.sample_genotype_paths(
                                             num_genotypes_per_tournament)
     train_images, train_classes = shuffle(train_images, train_classes)
     sampled_train_images = train_images[:num_samples_per_path]
     sampled_train_classes = train_classes[:num_samples_per_path]
-    #for arg in range(len(sampled_train_images)):
-        #display_image(sampled_train_images[arg].reshape(28, 28), sampled_train_classes[arg], cmap='gray')
     print('\n Genetic epoch:', genetic_epoch_arg)
     losses = []
     for genotype_path in sampled_paths:
@@ -85,9 +79,9 @@ for genetic_epoch_arg in range(num_genetic_epochs):
         path_model.fit(sampled_train_images, sampled_train_classes,
                         batch_size, num_cnn_epochs, verbosity, shuffle=True)
         save_layer_weights(path_model, save_path)
-        score = path_model.evaluate(validation_images, validation_classes,
-                                                        verbose=verbosity)
-        print('\n Scores:', score)
+        score = path_model.evaluate(*validation_data, verbose=verbosity)
+        #print('\n Loss:', score[0])
+        print('\n Accuracy:', score[1])
         losses.append(-1 * score[0])
     best_path = genetic_agents.overwrite(sampled_args, losses)
     chosen_paths.append(best_path)
