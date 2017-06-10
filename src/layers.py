@@ -45,13 +45,6 @@ class ReduceAverage(Layer):
             output_shape = input_shape
         return tuple(output_shape)
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
     from keras.layers import Dense
     from keras.layers import Input
