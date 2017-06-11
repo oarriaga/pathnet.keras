@@ -8,15 +8,17 @@ from utils import to_categorical
 from utils import flatten
 from utils import shuffle
 from utils import spice_up_images
+from utils import reset_weights
+from utils import from_path_to_names
 
 class TaskManager(object):
     def __init__(self, pathnet, genetic_agents, dataset_name, class_args_list,
                 optimizer= SGD(lr=0.0001),
+                accuracy_treshold = .998,
                 save_path='../trained_models/',
                 max_num_genetic_epochs = 500,
                 batch_size=16, num_path_epochs=100,
-                num_samples_per_path=16*50
-                ):
+                num_samples_per_path=16*50):
         self.pathnet = pathnet
         self.genetic_agents = genetic_agents
         self.dataset_name = dataset_name
@@ -30,6 +32,8 @@ class TaskManager(object):
         self.verbosity = 0
         self.data_manager = DataManager()
         self.num_samples_per_path = num_samples_per_path
+        self.accuracy_treshold = accuracy_treshold
+        self.frozen_paths = []
 
     def _load_data(self, class_args):
         train_data, test_data = self.data_manager.load(self.dataset_name,
@@ -53,10 +57,8 @@ class TaskManager(object):
         # flatten, add salt/pepper noise and normalize images
         image_splits = (train_images, validation_images, test_images)
         image_splits = [flatten(image_split) for image_split in image_splits]
-
         image_splits = [spice_up_images(image_split)
                         for image_split in image_splits]
-
         image_splits = [normalize_images(image_split)
                             for image_split in image_splits]
 
@@ -76,36 +78,41 @@ class TaskManager(object):
             train_data, validation_data, test_data = task_data_splits
             train_images, train_classes = train_data
             validation_images, validation_classes = validation_data
-            chosen_paths = []
             for genetic_epoch_arg in range(self.max_num_genetic_epochs):
-                # i am so sorry for this ugly split
+                print('*'*30)
+                print('Genetic epoch:', genetic_epoch_arg)
                 sampled_paths, sampled_args  = \
                             self.genetic_agents.sample_genotype_paths(2)
                 train_images, train_classes = shuffle(train_images,
                                                     train_classes)
                 sampled_train_images = train_images[:self.num_samples_per_path]
                 sampled_train_classes = train_classes[:self.num_samples_per_path]
-                print('\n Genetic epoch:', genetic_epoch_arg)
-                losses = []
+                fitness_values = []
                 for genotype_path in sampled_paths:
                     path_model = self.pathnet.build(genotype_path)
                     load_layer_weights(path_model, self.save_path)
                     path_model.compile(optimizer=self.optimizer,
-                                loss='categorical_crossentropy',
-                                                metrics=['acc'])
+                            loss='categorical_crossentropy', metrics=['acc'])
+                    frozen_path_names = from_path_to_names(genotype_path)
+                    for path_layer in path_model.layers:
+                        if path_layer.name in frozen_path_names:
+                            path_layer.trainable = False
                     path_model.fit(sampled_train_images, sampled_train_classes,
-                                   self.batch_size, self.num_path_epochs,
-                                    self.verbosity, shuffle=True)
-                    save_layer_weights(path_model, self.save_path)
+                                        self.batch_size, self.num_path_epochs,
+                                        self.verbosity, shuffle=True)
+                    save_layer_weights(path_model, self.save_path,
+                                                self.frozen_paths)
                     score = path_model.evaluate(validation_images,
-                                                validation_classes,
-                                                verbose=self.verbosity)
-                    print('\n Loss:', score[0])
-                    print('\n Accuracy:', score[1])
-                    losses.append(-1 * score[0])
-                best_path = genetic_agents.overwrite(sampled_args, losses)
-                chosen_paths.append(best_path)
-
+                                    validation_classes, verbose=self.verbosity)
+                    loss, accuracy = score
+                    print('Loss: %.2f Accuracy: %.2f', (loss, accuracy))
+                    fitness_values.append(-1 * loss)
+                best_path = genetic_agents.overwrite(sampled_args,
+                                                    fitness_values)
+                if accuracy > self.accuracy_treshold:
+                    self.frozen_paths.append(best_path)
+                    reset_weights(self.frozen_paths)
+                    break
 
 if __name__ == "__main__":
     from genetic_agents import GeneticAgents
@@ -122,11 +129,9 @@ if __name__ == "__main__":
                     output_size=output_size)
 
     # parameters for the task manager
-    class_arg_list = [[5, 7]]
+    class_arg_list = [[5, 7], [8,1]]
     accuracy_treshold = .998
     dataset_name = 'mnist'
     task_manager = TaskManager(pathnet, genetic_agents,
                             dataset_name, class_arg_list)
     task_manager.train_tasks()
-
-
