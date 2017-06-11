@@ -93,7 +93,7 @@ class TaskManager(object):
                     load_layer_weights(path_model, self.save_path)
                     path_model.compile(optimizer=self.optimizer,
                             loss='categorical_crossentropy', metrics=['acc'])
-                    frozen_path_names = from_path_to_names(genotype_path)
+                    frozen_path_names = from_path_to_names(self.frozen_paths)
                     for path_layer in path_model.layers:
                         if path_layer.name in frozen_path_names:
                             path_layer.trainable = False
@@ -105,13 +105,13 @@ class TaskManager(object):
                     score = path_model.evaluate(validation_images,
                                     validation_classes, verbose=self.verbosity)
                     loss, accuracy = score
-                    print('Loss: %.2f Accuracy: %.2f', (loss, accuracy))
+                    print('Loss: %.2f Accuracy: %.2f' % (loss, accuracy))
                     fitness_values.append(-1 * loss)
                 best_path = genetic_agents.overwrite(sampled_args,
                                                     fitness_values)
                 if accuracy > self.accuracy_treshold:
                     self.frozen_paths.append(best_path)
-                    reset_weights(self.frozen_paths)
+                    reset_weights(self.frozen_paths, self.save_path)
                     break
 
 if __name__ == "__main__":
@@ -130,8 +130,9 @@ if __name__ == "__main__":
 
     # parameters for the task manager
     class_arg_list = [[5, 7], [8,1]]
-    accuracy_treshold = .998
+    accuracy_treshold = .90
     dataset_name = 'mnist'
     task_manager = TaskManager(pathnet, genetic_agents,
-                            dataset_name, class_arg_list)
+                            dataset_name, class_arg_list,
+                            accuracy_treshold=accuracy_treshold)
     task_manager.train_tasks()
