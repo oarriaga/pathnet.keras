@@ -1,7 +1,6 @@
 TODO: 
     - Test pipeline
         - Test loading saving weights.
-    - FIX: multiple reduce sum modules saving
     - Add threshold for loss/accuracy
     - Construct MNIST experiments.
         - Data, paths saving.
