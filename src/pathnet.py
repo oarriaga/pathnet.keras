@@ -6,7 +6,7 @@ from keras.models import Model
 import numpy as np
 
 class PathNet(object):
-    def __init__(self, shape=(3,5), population_size=64,
+    def __init__(self, shape=(3, 5), population_size=64,
                 input_size=28*28, output_size=20, num_neurons_per_module=20):
         self.num_modules_per_layer, self.num_layers = shape
         self.population_size = population_size
