@@ -112,6 +112,11 @@ def from_path_to_names(paths):
         frozen_path_names = frozen_path_names + names
     return list(set(frozen_path_names))
 
+def reset_all_weigths(save_path):
+    file_paths = glob.glob(save_path + '*.p')
+    for file_path in file_paths:
+        os.remove(file_path)
+
 if __name__ == "__main__":
     from genetic_agents import GeneticAgents
     genetic_agents = GeneticAgents(shape=(5, 3))
