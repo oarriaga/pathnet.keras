@@ -1,7 +1,4 @@
 TODO: 
-    - Test pipeline
-        - Test loading saving weights.
-    - Add threshold for loss/accuracy
     - Construct MNIST experiments.
         - Data, paths saving.
         - Several runs data.
