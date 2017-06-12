@@ -7,15 +7,18 @@ import numpy as np
 
 class PathNet(object):
     def __init__(self, shape=(3, 5), population_size=64,
-                input_size=28*28, output_size=20, num_neurons_per_module=20):
+                input_size=28*28, output_size=20, num_neurons_per_module=20,
+                num_tasks=2):
         self.num_modules_per_layer, self.num_layers = shape
         self.population_size = population_size
         self.input_layer = Input(shape=(input_size,))
         self.output_size = output_size
-        self.output_layer = Dense(self.output_size, activation='softmax')
         self.num_neurons_per_module = num_neurons_per_module
         self.pathnet = self._instantiate_pathnet_modules()
-
+        self.output_layers = []
+        for task_arg in range(num_tasks):
+            output_layer = Dense(self.output_size, activation='softmax')
+            self.output_layers.append(output_layer)
     def _instantiate_pathnet_modules(self):
         modules = []
         for module_arg in range(self.num_modules_per_layer):
@@ -27,7 +30,7 @@ class PathNet(object):
             modules.append(layers)
         return np.asarray(modules)
 
-    def build(self, individual):
+    def build(self, individual, task_arg=0):
         reduced_sum_modules = []
         for layer_arg in range(self.num_layers):
             layer_paths = []
@@ -45,7 +48,7 @@ class PathNet(object):
                 reduced_sum_modules.append(ReduceSum(axis=-1)(layer_paths))
 
 
-        predictions = self.output_layer(reduced_sum_modules[-1])
+        predictions = self.output_layers[task_arg](reduced_sum_modules[-1])
         model = Model(inputs=self.input_layer, outputs=predictions)
         return model
 
