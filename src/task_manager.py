@@ -13,7 +13,7 @@ from utils import from_path_to_names
 
 class TaskManager(object):
     def __init__(self, pathnet, genetic_agents, dataset_name, class_args_list,
-                optimizer= SGD(lr=0.0001),
+                optimizer= SGD(lr=0.01),
                 accuracy_treshold = .998,
                 save_path='../trained_models/',
                 max_num_genetic_epochs = 500,
@@ -89,7 +89,7 @@ class TaskManager(object):
                 sampled_train_classes = train_classes[:self.num_samples_per_path]
                 fitness_values = []
                 for genotype_path in sampled_paths:
-                    path_model = self.pathnet.build(genotype_path)
+                    path_model = self.pathnet.build(genotype_path, task_arg)
                     load_layer_weights(path_model, self.save_path)
                     path_model.compile(optimizer=self.optimizer,
                             loss='categorical_crossentropy', metrics=['acc'])
@@ -111,6 +111,7 @@ class TaskManager(object):
                                                     fitness_values)
                 if accuracy > self.accuracy_treshold:
                     self.frozen_paths.append(best_path)
+                    print('Frozen paths: \n', self.frozen_paths[task_arg])
                     reset_weights(self.frozen_paths, self.save_path)
                     break
 
@@ -129,7 +130,7 @@ if __name__ == "__main__":
                     output_size=output_size)
 
     # parameters for the task manager
-    class_arg_list = [[5, 7], [8,1]]
+    class_arg_list = [[4, 5], [6, 7]]
     accuracy_treshold = .90
     dataset_name = 'mnist'
     task_manager = TaskManager(pathnet, genetic_agents,
