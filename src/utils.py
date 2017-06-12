@@ -44,18 +44,6 @@ def display_image(image_array, image_class, cmap=None):
     plt.title('ground truth class: ' + image_class)
     plt.show()
 
-def from_path_to_names(paths):
-    if (len(paths) is 0) or (paths is None):
-        return []
-    frozen_path_names = []
-    for path in paths:
-        path_coordinates = list(zip(*[coordinates.tolist()
-                        for coordinates in np.where(path)]))
-        names = ['module_' + str(args[0]) + str(args[1])
-                        for args in path_coordinates]
-        frozen_path_names + frozen_path_names + names
-    return list(set(frozen_path_names))
-
 def save_layer_weights(model, save_path, frozen_paths=[]):
     frozen_path_names = from_path_to_names(frozen_paths)
     for layer in model.layers:
@@ -79,10 +67,11 @@ def load_layer_weights(model, save_path):
 
 def reset_weights(frozen_paths, save_path):
     frozen_path_names = from_path_to_names(frozen_paths)
+    frozen_path_names = frozen_path_names
     file_paths = glob.glob(save_path + '*.p')
     weight_filenames = [os.path.basename(path)[:-2] for path in file_paths]
     for weight_filename in weight_filenames:
-        if weight_filename in frozen_path_names:
+        if weight_filename in frozen_path_names or 'dense' in weight_filename:
             continue
         else:
             os.remove(save_path + weight_filename + '.p')
@@ -111,8 +100,22 @@ def shuffle(input_data, output_classes):
     output_classes = output_classes[random_args]
     return input_data, output_classes
 
+def from_path_to_names(paths):
+    if (len(paths) is 0) or (paths is None):
+        return []
+    frozen_path_names = []
+    for path in paths:
+        path_coordinates = list(zip(*[coordinates.tolist()
+                        for coordinates in np.where(path)]))
+        names = ['module_' + str(args[0]) + str(args[1])
+                        for args in path_coordinates]
+        frozen_path_names = frozen_path_names + names
+    return list(set(frozen_path_names))
+
 if __name__ == "__main__":
-    class_data = np.array([7, 7, 6, 6 ,6 ,5 ,6 ,6])
-    print(class_data)
-    categorical_data = to_categorical(class_data)
-    print(categorical_data)
+    from genetic_agents import GeneticAgents
+    genetic_agents = GeneticAgents(shape=(5, 3))
+    paths, path_args = genetic_agents.sample_genotype_paths()
+    names = from_path_to_names(paths)
+    print(names)
+
