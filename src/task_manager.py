@@ -13,7 +13,7 @@ from utils import from_path_to_names
 
 class TaskManager(object):
     def __init__(self, pathnet, genetic_agents, dataset_name, class_args_list,
-                optimizer= SGD(lr=0.01),
+                optimizer= SGD(lr=0.0001),
                 accuracy_treshold = .998,
                 save_path='../trained_models/',
                 max_num_genetic_epochs = 500,
@@ -34,6 +34,7 @@ class TaskManager(object):
         self.num_samples_per_path = num_samples_per_path
         self.accuracy_treshold = accuracy_treshold
         self.frozen_paths = []
+        self.genetic_epochs = []
 
     def _load_data(self, class_args):
         train_data, test_data = self.data_manager.load(self.dataset_name,
@@ -102,17 +103,20 @@ class TaskManager(object):
                                         self.verbosity, shuffle=True)
                     save_layer_weights(path_model, self.save_path,
                                                 self.frozen_paths)
-                    score = path_model.evaluate(validation_images,
-                                    validation_classes, verbose=self.verbosity)
+                    #score = path_model.evaluate(validation_images,
+                                    #validation_classes, verbose=self.verbosity)
+                    score = path_model.evaluate(train_images,train_classes,
+                                                    verbose=self.verbosity)
                     loss, accuracy = score
-                    print('Loss: %.2f Accuracy: %.2f' % (loss, accuracy))
+                    print('Loss: %.3f Accuracy: %.3f' % (loss, accuracy))
                     fitness_values.append(-1 * loss)
-                best_path = genetic_agents.overwrite(sampled_args,
+                best_path = self.genetic_agents.overwrite(sampled_args,
                                                     fitness_values)
                 if accuracy > self.accuracy_treshold:
                     self.frozen_paths.append(best_path)
                     print('Frozen paths: \n', self.frozen_paths[task_arg])
                     reset_weights(self.frozen_paths, self.save_path)
+                    self.genetic_epochs.append(genetic_epoch_arg)
                     break
 
 if __name__ == "__main__":
