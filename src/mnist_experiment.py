@@ -1,5 +1,7 @@
 import pickle
 
+import keras.backend as K
+
 from genetic_agents import GeneticAgents
 from pathnet import PathNet
 from task_manager import TaskManager
@@ -29,5 +31,6 @@ for experiment_arg in range(num_experiments):
     reset_all_weigths(save_path)
     task_manager.train_tasks()
     genetic_epochs.append(task_manager.genetic_epochs)
+    K.clear_session()
 pickle.dump(genetic_epochs, open('mnist_experiment.p', 'wb'))
 
