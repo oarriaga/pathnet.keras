@@ -28,6 +28,7 @@ task_manager = TaskManager(pathnet, genetic_agents,
                             dataset_name, class_arg_list,
                             accuracy_treshold=val_accuracy_treshold)
 for experiment_arg in range(num_experiments):
+    print('Experiment:', experiment_arg)
     reset_all_weigths(save_path)
     task_manager.train_tasks()
     genetic_epochs.append(task_manager.genetic_epochs)
