@@ -5,8 +5,10 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def normalize_images(image_array):
     return image_array.astype('float32') / 255.
+
 
 def _add_salt_and_pepper(image_array, probability=.5):
     image_array = np.squeeze(image_array)
@@ -19,11 +21,13 @@ def _add_salt_and_pepper(image_array, probability=.5):
     spiced_image[salty_mask] = np.max(image_array)
     return spiced_image
 
+
 def spice_up_images(images):
     num_samples = len(images)
     for sample_arg in range(num_samples):
         images[sample_arg] = _add_salt_and_pepper(images[sample_arg])
     return images
+
 
 def split_data(train_data, validation_split=.2):
     num_train = int(round((1 - validation_split) * len(train_data[0])))
@@ -36,6 +40,7 @@ def split_data(train_data, validation_split=.2):
     validation_data = (validation_images, validation_classes)
     return train_data, validation_data
 
+
 def display_image(image_array, image_class, cmap=None):
     image_array = np.squeeze(image_array)
     image_array = image_array.astype('uint8')
@@ -43,6 +48,7 @@ def display_image(image_array, image_class, cmap=None):
     image_class = str(image_class)
     plt.title('ground truth class: ' + image_class)
     plt.show()
+
 
 def save_layer_weights(model, save_path, frozen_paths=[]):
     frozen_path_names = from_path_to_names(frozen_paths)
@@ -53,7 +59,9 @@ def save_layer_weights(model, save_path, frozen_paths=[]):
         file_path = save_path + layer.name + '.p'
         pickle.dump(layer.get_weights(), open(file_path, 'wb'))
 
+
 def load_layer_weights(model, save_path):
+    print(save_path)
     file_paths = glob.glob(save_path + '*.p')
     if file_paths is None:
         print('file_paths not found, continuing without loading weights...')
@@ -65,6 +73,7 @@ def load_layer_weights(model, save_path):
             weights = pickle.load(open(weights_path, 'rb'))
             layer.set_weights(weights)
 
+
 def reset_weights(frozen_paths, save_path):
     frozen_path_names = from_path_to_names(frozen_paths)
     frozen_path_names = frozen_path_names
@@ -75,6 +84,7 @@ def reset_weights(frozen_paths, save_path):
             continue
         else:
             os.remove(save_path + weight_filename + '.p')
+
 
 def to_categorical(data):
     arg_classes = np.unique(data).tolist()
@@ -89,9 +99,11 @@ def to_categorical(data):
         categorical_data[sample_arg, data_arg] = 1
     return categorical_data
 
+
 def flatten(images):
     num_samples = len(images)
     return images.reshape(num_samples, -1)
+
 
 def shuffle(input_data, output_classes):
     num_samples = len(input_data)
@@ -100,27 +112,30 @@ def shuffle(input_data, output_classes):
     output_classes = output_classes[random_args]
     return input_data, output_classes
 
+
 def from_path_to_names(paths):
     if (len(paths) is 0) or (paths is None):
         return []
     frozen_path_names = []
     for path in paths:
         path_coordinates = list(zip(*[coordinates.tolist()
-                        for coordinates in np.where(path)]))
+                                      for coordinates in np.where(path)]))
         names = ['module_' + str(args[0]) + str(args[1])
-                        for args in path_coordinates]
+                 for args in path_coordinates]
         frozen_path_names = frozen_path_names + names
     return list(set(frozen_path_names))
+
 
 def reset_all_weigths(save_path):
     file_paths = glob.glob(save_path + '*.p')
     for file_path in file_paths:
         os.remove(file_path)
 
+
 if __name__ == "__main__":
     from genetic_agents import GeneticAgents
     genetic_agents = GeneticAgents(shape=(5, 3))
     paths, path_args = genetic_agents.sample_genotype_paths()
     names = from_path_to_names(paths)
+    print(path_args)
     print(names)
-

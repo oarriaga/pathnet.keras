@@ -69,4 +69,5 @@ if __name__ == '__main__':
           genetic_agents.population[path_args[0]])
     print('overwritten_path_2 (loser): \n',
           genetic_agents.population[path_args[1]])
-    print(genetic_agents.population[path_args[0]] == genetic_agents.population[path_args[1]])
+    print(genetic_agents.population[path_args[0]] ==
+          genetic_agents.population[path_args[1]])

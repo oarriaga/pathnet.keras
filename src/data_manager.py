@@ -1,114 +1,133 @@
-import os
-
-import scipy.io
+import pandas as pd
 import numpy as np
-from keras.datasets import mnist
-from keras.datasets import cifar10
+from sklearn import preprocessing
 
-from data_downloader import DataDownloader
-from utils import display_image
 
 class DataManager(object):
-    """Class for loading the different datasets used in pathnets"""
-    def __init__(self, dataset_path_prefix='../datasets/'):
-        if not os.path.isdir(dataset_path_prefix):
-            os.makedirs(dataset_path_prefix)
-        self.available_datasets = ('mnist', 'cifar10', 'svhn')
-        self.dataset_path_prefix = dataset_path_prefix
-        self.dataset_downloader = None
 
-    def load(self, dataset_name, class_args=None):
-        self.dataset_downloader = DataDownloader(self.dataset_path_prefix,
-                                                            dataset_name)
-        if dataset_name == 'mnist':
-            train_data, test_data = mnist.load_data()
-            if class_args is not None:
-                train_data, test_data = self._filter_classes((train_data,
-                                                 test_data), class_args)
-                train_data, test_data = (train_data, test_data)
-            return self._shuffle((train_data, test_data))
-        elif dataset_name == 'cifar10':
-            train_data, test_data = cifar10.load_data()
+    def __init__(self, filepath, split_length=10, num_classes=None):
 
-        elif dataset_name == 'svhn':
-            if dataset_name not in os.listdir(self.dataset_path_prefix):
-                self.dataset_downloader.get(dataset_name)
+        self.filepath = filepath
+        self.split_length = split_length
+        self.num_classes = num_classes
+
+    def _preprocess_data(self, data):
+        return preprocessing.scale(data, axis=0)
+
+    def _infer_num_classes(self, data):
+        num_classes = data.iloc[:, -1].unique().shape[0]
+        return num_classes
+
+    def _load_data(self, filepath):
+        data = pd.read_csv(self.filepath, delimiter=',', header=None)
+        if self.num_classes is None:
+            self.num_classes = self._infer_num_classes(data)
+        data = data.iloc[:, :9].as_matrix()
+        return data
+
+    def _split_time_series(self, time_series, split_length=300):
+        """ Transform data into time series
+        Arguments:
+            data: numpy.array, array of shape (n_samples_X, n_features)
+            series_length: int, length of a single series.
+        Returns:
+            numpy.array (n_samples/series_length, series_length, n_features)
+        """
+        series_length, num_channels = time_series.shape
+        remainder = series_length % split_length
+        if remainder != 0:
+            time_series = time_series[:-remainder]
+        num_splits = int(series_length/split_length)
+        return time_series.reshape(num_splits, split_length, num_channels)
+
+    def _get_class_time_series(self, class_arg, data):
+        series_length = data.shape[0]
+        start_arg = int((series_length / self.num_classes) * class_arg)
+        end_arg = int((series_length / self.num_classes) * (class_arg + 1))
+        class_time_series = data[start_arg:end_arg]
+        return class_time_series
+
+    def _make_one_hot_features(self, class_arg, class_features):
+        num_samples = class_features.shape[0]
+        class_targets = np.zeros(shape=(num_samples, self.num_classes))
+        class_targets[:, class_arg] = 1
+        return class_targets
+
+    def _change_data_for_regression(self, features):
+        class_features = features[:, :, :6]
+        class_targets = features[:, :, 6:]
+        return class_features, class_targets
+
+    def _randomize_data(self, class_features, class_targets, seed):
+        np.random.seed(seed)
+        num_samples = class_features.shape[0]
+        random_sample_args = np.arange(num_samples)
+        np.random.shuffle(random_sample_args)
+        class_features = class_features[random_sample_args]
+        class_targets = class_targets[random_sample_args]
+        return class_features, class_targets
+
+    def load_data(self, train_split=.6, val_split=.2, regression=False,
+                  randomize=False, classes=False, flatten=False, seed=7):
+
+        data = self._load_data(self.filepath)
+        data = self._preprocess_data(data)
+
+        train_features, val_features, test_features = [], [], []
+        train_targets, val_targets, test_targets = [], [], []
+        for class_arg in range(self.num_classes):
+            class_time_series = self._get_class_time_series(class_arg, data)
+            class_features = self._split_time_series(
+                    class_time_series, self.split_length)
+
+            if regression:
+                class_data = self._change_data_for_regression(class_features)
+                class_features, class_targets = class_data
+
             else:
-                print('Found dataset %s directory skipping download'
-                                                    % dataset_name)
-            dataset_path = self.dataset_path_prefix + dataset_name + '/'
-            file_names = os.listdir(dataset_path)
-            for file_name in file_names:
-                if 'train' in os.path.basename(file_name):
-                    data = scipy.io.loadmat(dataset_path + file_name)
-                    input_train_data = np.rollaxis(data['X'], -1, 0)
-                    output_train_data = np.squeeze(data['y'])
-                    train_data = (input_train_data, output_train_data)
-                elif 'test' in os.path.basename(file_name):
-                    data = scipy.io.loadmat(dataset_path + file_name)
-                    input_test_data = np.rollaxis(data['X'], -1, 0)
-                    output_test_data = np.squeeze(data['y'])
-                    test_data = (input_test_data, output_test_data)
-            return (train_data, test_data)
-        elif dataset_name not in self.available_datasets :
-            raise Exception('Dataset name "%s" not valid' % dataset_name)
+                class_targets = self._make_one_hot_features(
+                        class_arg, class_features)
 
-    def _filter_classes(self, data, class_args):
-        train_data, test_data = data
-        train_images, train_classes = train_data
-        test_images, test_classes = test_data
-        filtered_test_images = []
-        filtered_train_images = []
-        filtered_test_classes = []
-        filtered_train_classes = []
-        for class_arg in class_args:
-            test_classes_mask = test_classes == class_arg
-            train_classes_mask = train_classes == class_arg
-            selected_test_images = test_images[test_classes_mask]
-            selected_train_images = train_images[train_classes_mask]
-            selected_test_classes = test_classes[test_classes_mask]
-            selected_train_classes = train_classes[train_classes_mask]
-            filtered_test_images.append(selected_test_images)
-            filtered_train_images.append(selected_train_images)
-            filtered_test_classes.append(selected_test_classes)
-            filtered_train_classes.append(selected_train_classes)
-        test_images = np.concatenate(filtered_test_images, axis=0)
-        train_images = np.concatenate(filtered_train_images, axis=0)
-        test_classes = np.concatenate(filtered_test_classes, axis=0)
-        train_classes = np.concatenate(filtered_train_classes, axis=0)
-        test_data = (test_images, test_classes)
-        train_data = (train_images, train_classes)
-        return (train_data, test_data)
+            if randomize:
+                class_features, class_targets = self._randomize_data(
+                        class_features, class_targets, seed)
 
-    def _shuffle(self, data):
-        train_data, test_data = data
-        test_images, test_classes = test_data
-        train_images, train_classes = train_data
-        random_test_args = np.random.permutation(len(test_images))
-        random_train_args = np.random.permutation(len(train_images))
-        test_images = test_images[random_test_args]
-        test_classes = test_classes[random_test_args]
-        train_images = train_images[random_train_args]
-        train_classes = train_classes[random_train_args]
-        test_data = (test_images, test_classes)
-        train_data = (train_images, train_classes)
-        return (train_data, test_data)
+            train_split_arg = int(len(class_targets) * train_split)
+            train_features.append(class_features[:train_split_arg])
+            train_targets.append(class_targets[:train_split_arg])
 
-if __name__ == '__main__':
-    from utils import shuffle
-    from utils import add_salt_and_pepper
+            val_test_features = class_features[train_split_arg:]
+            val_test_targets = class_targets[train_split_arg:]
 
-    data_manager = DataManager()
-    print('Available datasets: ', data_manager.available_datasets)
+            relative_val_split = val_split / (1 - train_split)
+            relative_val_split_arg = (int(len(val_test_targets) *
+                                      relative_val_split))
 
-    train_data, test_data = data_manager.load('mnist', class_args=[0, 2])
-    train_images, train_classes = train_data
-    train_images, train_classes = shuffle(train_images, train_classes)
-    for image_arg in range(10):
-        image_array = add_salt_and_pepper(train_images[image_arg])
-        display_image(image_array, train_classes[image_arg], cmap='gray')
+            val_features.append(val_test_features[:relative_val_split_arg])
+            val_targets.append(val_test_targets[:relative_val_split_arg])
 
-    #train_data, test_data = data_manager.load('svhn')
-    #train_images, train_classes = train_data
-    #display_image(train_images[0], train_classes[0], cmap='gray')
+            test_features.append(val_test_features[relative_val_split_arg:])
+            test_targets.append(val_test_targets[relative_val_split_arg:])
 
+        if classes:
+            train_features = np.concatenate(train_features, 0)
+            train_targets = np.concatenate(train_targets, 0)
+
+            val_features = np.concatenate(val_features, 0)
+            val_targets = np.concatenate(val_targets, 0)
+
+            test_features = np.concatenate(test_features, 0)
+            test_targets = np.concatenate(test_targets, 0)
+
+        train_data = (train_features, train_targets)
+        val_data = (val_features, val_targets)
+        test_data = (test_features, test_targets)
+
+        return train_data, val_data, test_data
+
+
+if __name__ == "__main__":
+    filepath = '../datasets/3_classes_small_new.csv'
+    data_manager = DataManager(filepath, split_length=20)
+    train, val, test = data_manager.load_data(.6, .2, True, False, False)
+    print(train[0].shape, train[1].shape)
